@@ -12,7 +12,7 @@ class NQueens:
     def reset_state(self):
         self.queen = []
 
-    def find_solution(self, algorithm = 'dfs'):
+    def find_solution(self, algorithm = 'dfs', checkValid = False):
         self.reset_state()
         match algorithm:
             case 'dfs':
@@ -28,7 +28,9 @@ class NQueens:
             case _:
                 # print('[!] Unknown algorithm')
                 return False
-        assert self.is_safe(self.queen)
+        # print('[+] Found solution, checking...')
+        if checkValid:
+            assert self.is_valid(self.queen)
         return True
     
     def _dfs(self):
@@ -161,7 +163,6 @@ class NQueens:
         
         collisions = -1
         while collisions != 0:
-            # print(collisions)
             # Generate a random permutation of queen[0] to queen[size-1]
             queen = list(range(self.size))
             random.shuffle(queen)
@@ -187,7 +188,16 @@ class NQueens:
                             break
                 loopcount += number_of_attacks
 
-    def is_safe(self, state):
+    def _trivial(self):
+        queen = [0]*(self.size+1)
+        for j in range(1, self.size//2 + 1):
+            queen[j] = 2*j
+            queen[j + self.size//2] = 2*j - 1
+        # print(queen)
+        self.queen = [x-1 for x in queen][1:]
+        return
+    
+    def is_valid(self, state):
         """
         Return `True` if the target `state` doesn't have any two queens attacking each other.
         """
@@ -199,7 +209,7 @@ class NQueens:
                     return False
         return True
 
-    def print_board(self, queen = None):
+    def print_board(self):
         if len(self.queen) != self.size:
             print('[+] Please find a solution first!')
             return
