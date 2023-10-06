@@ -12,7 +12,7 @@ class NQueens:
     def reset_state(self):
         self.queen = []
 
-    def find_solution(self, algorithm = 'dfs', checkValid = False):
+    def find_solution(self, algorithm = 'dfs'):
         self.reset_state()
         match algorithm:
             case 'dfs':
@@ -23,14 +23,12 @@ class NQueens:
                 pass
             case 'queen_search2':
                 self._queen_search2()
-            case 'trivial':
-                self._trivial()
+            case 'explicit':
+                self._explicit()
             case _:
                 # print('[!] Unknown algorithm')
                 return False
         # print('[+] Found solution, checking...')
-        if checkValid:
-            assert self.is_valid(self.queen)
         return True
     
     def _dfs(self):
@@ -46,7 +44,7 @@ class NQueens:
             for col in range(self.size):
                 new_state = solution.copy() # deep copy
                 new_state.append(col)
-                if self.is_safe(new_state):
+                if self.is_valid(new_state):
                     stack.append(new_state)
         return
 
@@ -64,7 +62,7 @@ class NQueens:
             for col in range(self.size):
                 new_state = solution.copy() # deep copy
                 new_state.append(col)
-                if self.is_safe(new_state):
+                if self.is_valid(new_state):
                     queue.put(new_state)
         return
 
@@ -72,26 +70,28 @@ class NQueens:
         """
         Based on the paper: Fast Search Algorithms for the N-Queens Problem
         """
-        def swap_ok(i, j, queen, dn, dp):  
+        def swap_ok(i, j, queen, dn, dp):
+            """
+            Thử swap 2 con hậu hàng `i` và `j` với nhau. Nếu collision giảm thì return True.
+            """  
             idx_dn = set([i + queen[i], j + queen[j], i + queen[j], j + queen[i]])
             idx_dp = set([i - queen[i], j - queen[j], i - queen[j], j - queen[i]])
-            diff = 0
+            diff = 0 # diff = old_collision - new_collision
             for idx in idx_dn:
                 if dn[idx] > 0:
                     diff += dn[idx] - 1
             for idx in idx_dp:
                 if dp[idx - (1 - self.size)] > 0:
                     diff += dp[idx - (1 - self.size)] - 1
+            # Swap
             dn[i + queen[i]] -= 1
             dn[j + queen[j]] -= 1
             dn[i + queen[j]] += 1
             dn[j + queen[i]] += 1
-
             dp[i - queen[i] - (1 - self.size)] -= 1
             dp[j - queen[j] - (1 - self.size)] -= 1
             dp[i - queen[j] - (1 - self.size)] += 1
             dp[j - queen[i] - (1 - self.size)] += 1
-
             for idx in idx_dn:
                 if dn[idx] > 0:
                     diff -= dn[idx] - 1
@@ -99,11 +99,11 @@ class NQueens:
                 if dp[idx - (1 - self.size)] > 0:
                     diff -= dp[idx - (1 - self.size)] - 1
 
+            # Undo swap
             dn[i + queen[i]] += 1
             dn[j + queen[j]] += 1
             dn[i + queen[j]] -= 1
             dn[j + queen[i]] -= 1
-
             dp[i - queen[i] - (1 - self.size)] += 1
             dp[j - queen[j] - (1 - self.size)] += 1
             dp[i - queen[j] - (1 - self.size)] -= 1
@@ -113,6 +113,9 @@ class NQueens:
             return False
         
         def perform_swap(i, j, queen, collisions, dn, dp):
+            """
+            Swap 2 con hậu ở hàng i và j, cập nhật lại `dn`, `dp` và `collision`
+            """
             idx_dn = set([i + queen[i], j + queen[j], i + queen[j], j + queen[i]])
             idx_dp = set([i - queen[i], j - queen[j], i - queen[j], j - queen[i]])
             diff = 0
@@ -122,7 +125,7 @@ class NQueens:
             for idx in idx_dp:
                 if dp[idx - (1 - self.size)] > 0:
                     diff += dp[idx - (1 - self.size)] - 1
-            # perform swap
+            # swap
             dn[i + queen[i]] -= 1
             dn[j + queen[j]] -= 1
             dn[i + queen[j]] += 1
@@ -131,19 +134,20 @@ class NQueens:
             dp[j - queen[j] - (1 - self.size)] -= 1
             dp[i - queen[j] - (1 - self.size)] += 1
             dp[j - queen[i] - (1 - self.size)] += 1
-
             for idx in idx_dn:
                 if dn[idx] > 0:
                     diff -= dn[idx] - 1
             for idx in idx_dp:
                 if dp[idx - (1 - self.size)] > 0:
                     diff -= dp[idx - (1 - self.size)] - 1
-
             queen[i], queen[j] = queen[j], queen[i]
             collisions -= diff
             return collisions
         
         def compute_collisions(queen):
+            """
+            Lưu 2 mảng `dn` và `dp` lần lượt lưu trữ số lượng con hậu trong đường chéo negative và positive.
+            """
             dn = [0] * (2*self.size - 2 + 1)
             dp = [0] * (2*self.size - 2 + 1)
             for row in range(len(queen)):
@@ -154,6 +158,9 @@ class NQueens:
             return collisions, dn, dp
         
         def compute_attacks(queen, dn, dp):
+            """
+            Return an array containing all queens that are attacked.
+            """
             attack = []
             for row in range(len(queen)):
                 col = queen[row]
@@ -188,7 +195,10 @@ class NQueens:
                             break
                 loopcount += number_of_attacks
 
-    def _trivial(self):
+    def _explicit(self):
+        """
+        Testing
+        """
         queen = [0]*(self.size+1)
         for j in range(1, self.size//2 + 1):
             queen[j] = 2*j
@@ -197,16 +207,20 @@ class NQueens:
         self.queen = [x-1 for x in queen][1:]
         return
     
-    def is_valid(self, state):
+    def is_valid(self, queens):
         """
         Return `True` if the target `state` doesn't have any two queens attacking each other.
         """
-        for row1 in range(1, len(state)):
-            col1 = state[row1]
-            for row2 in range(row1):
-                col2 = state[row2]
-                if col1 == col2 or (row1 + col1 == row2 + col2) or (row1 - col1 == row2 - col2):
-                    return False
+        if len(set(queens)) != len(queens):
+            return False
+        dn = [0] * (2*self.size - 1)
+        dp = [0] * (2*self.size - 1)
+        for row in range(len(queens)):
+            col = queens[row]
+            if dn[row + col] > 0 or dp[row - col - (1 - self.size)] > 0:
+                return False
+            dn[row + col] = 1
+            dp[row - col - (1 - self.size)] = 1
         return True
 
     def print_board(self):
