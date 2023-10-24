@@ -40,7 +40,7 @@ class NQueens:
                 new_state.append(col)
                 if self.is_valid(new_state):
                     if (len(new_state) == self.size):
-                        self.queen = solution
+                        self.queen = new_state
                         return
                     stack.append(new_state)
         return
@@ -53,13 +53,13 @@ class NQueens:
         while not queue.empty():
             solution = queue.get()
             n = len(solution)
-            if n == self.size:
-                self.queen = solution
-                return
             for col in range(self.size):
                 new_state = solution.copy() # deep copy
                 new_state.append(col)
                 if self.is_valid(new_state):
+                    if (len(new_state) == self.size):
+                        self.queen = new_state
+                        return
                     queue.put(new_state)
         return
 
