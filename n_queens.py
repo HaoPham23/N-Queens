@@ -23,12 +23,9 @@ class NQueens:
                 pass
             case 'queen_search2':
                 self._queen_search2()
-            case 'explicit':
-                self._explicit()
             case _:
-                # print('[!] Unknown algorithm')
+                print('[!] Unknown algorithm')
                 return False
-        # print('[+] Found solution, checking...')
         return True
     
     def _dfs(self):
@@ -194,18 +191,6 @@ class NQueens:
                             number_of_attacks, attack = compute_attacks(queen, dn, dp)
                             break
                 loopcount += number_of_attacks
-
-    def _explicit(self):
-        """
-        Testing
-        """
-        queen = [0]*(self.size+1)
-        for j in range(1, self.size//2 + 1):
-            queen[j] = 2*j
-            queen[j + self.size//2] = 2*j - 1
-        # print(queen)
-        self.queen = [x-1 for x in queen][1:]
-        return
     
     def is_valid(self, queens):
         """
