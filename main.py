@@ -10,11 +10,10 @@ def main():
     2. BFS (n <= 15)
     3. Hill Climbing
     4. Queen Search 2 (QS2)
-    5. Explicit
 
 [+] Your option number: """))
 
-    alg_options = ['dfs', 'bfs', 'hill_climbing', 'queen_search2', 'explicit']
+    alg_options = ['dfs', 'bfs', 'hill_climbing', 'queen_search2']
     if alg_num < 1 or alg_num > len(alg_options):
         print('[!] Please choose a valid option!')
         return
@@ -24,9 +23,8 @@ def main():
     nqueens.find_solution(alg)
     end_time = time.time()
     print(f"[+] Total running time of {alg.upper()} algorithm for n = {size}: {end_time - start_time} (s)")
-    isVerify = input("[+] Verify the solution? (y/n): ")
-    if isVerify.lower() == 'y':
-        print(nqueens.is_valid(nqueens.queen))
+    isVerify = nqueens.is_valid(nqueens.queen)
+    print(f"[+] Verify the solution: {isVerify}")
     isPrint = input('[+] Print the chessboard? (y/n): ')
     if isPrint.lower() == 'y':
         nqueens.print_board()
